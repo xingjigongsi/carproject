@@ -1,0 +1,10 @@
+Driver: rotate
+folder: /tmp
+logName: file.log
+textfromer: json
+
+
+
+rotateformt: "%Y%m%d%H%M"
+maxage: "24d"
+rotationtime: 1

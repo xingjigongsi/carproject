@@ -1,0 +1,38 @@
+syntax="proto3";
+
+package user;
+
+option go_package="./proto";
+
+service userService{
+  rpc registerUser(userMessage)returns(regiterRegisterUser);
+}
+
+enum sex{
+  man=0;
+  women=1;
+}
+
+enum userIdentity{
+    masses=0;
+    leagueMember=1;
+    partyMember=2;
+}
+
+message userMessage{
+  string name=1;
+  string password=2;
+  sex userSex=3;
+  string userBirth=4;
+  int32 provice=5;
+  int32 city=6;
+  int32 county=7;
+  string addressMsg=8;
+  optional string school=9;
+  optional userIdentity useridentity=10;
+}
+
+message regiterRegisterUser{
+  int32 code=1;
+  string message=2;
+}
