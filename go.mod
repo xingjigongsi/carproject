@@ -1,4 +1,4 @@
-module carproject
+module github.com/xingjigongsi/carproject
 
 go 1.17
 
