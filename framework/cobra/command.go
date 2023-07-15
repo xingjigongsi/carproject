@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	flag "github.com/spf13/pflag"
-	//carproject "github.com/xingjigongsi/carproject"
+	container "github.com/xingjigongsi/carproject"
 	"io"
 	"os"
 	"path/filepath"
@@ -47,7 +47,7 @@ type Command struct {
 	// Example: add [-F file | -D dir]... [-f format] profile
 	Use string
 
-	//Containe container.InterfaceContainer
+	Containe container.InterfaceContainer
 
 	// Aliases is an array of aliases that can be used instead of the first word in Use.
 	Aliases []string
