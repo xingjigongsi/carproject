@@ -10,7 +10,9 @@ func RunCommand(container *container.Container) error {
 	var rootCmd = &cobra.Command{
 		Use: "app",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			//cmd.InitDefaultHelpFlag()
+			if len(args) < 1 {
+				cmd.InitDefaultHelpFlag()
+			}
 			return nil
 		},
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
