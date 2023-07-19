@@ -19,8 +19,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	flag "github.com/spf13/pflag"
-	container "github.com/xingjigongsi/carproject"
+	"github.com/xingjigongsi/carproject/framework/container"
 	"io"
 	"os"
 	"path/filepath"
@@ -48,6 +49,12 @@ type Command struct {
 	Use string
 
 	Containe container.InterfaceContainer
+
+	Cron *cron.Cron
+
+	CronList []CronList
+
+	CronListMap map[string]struct{}
 
 	// Aliases is an array of aliases that can be used instead of the first word in Use.
 	Aliases []string

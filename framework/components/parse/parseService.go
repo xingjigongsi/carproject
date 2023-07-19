@@ -1,7 +1,7 @@
 package parse
 
 import (
-	"carproject/framework/container"
+	"github.com/xingjigongsi/carproject/framework/container"
 	"path"
 )
 

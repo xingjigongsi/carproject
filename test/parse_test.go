@@ -1,14 +1,14 @@
 package test
 
 import (
-	"carproject/framework/components/redis"
 	"fmt"
+	"github.com/xingjigongsi/carproject/framework/components/redis"
 	"testing"
 
-	"carproject/framework/components/log"
-	"carproject/framework/components/mongodb"
-	"carproject/framework/components/parse"
-	container "carproject/framework/container"
+	"github.com/xingjigongsi/carproject/framework/components/log"
+	"github.com/xingjigongsi/carproject/framework/components/mongodb"
+	"github.com/xingjigongsi/carproject/framework/components/parse"
+	"github.com/xingjigongsi/carproject/framework/container"
 )
 
 func TestParseYml(t *testing.T) {

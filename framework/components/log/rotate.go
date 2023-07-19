@@ -5,10 +5,10 @@ import (
 	"path"
 	"time"
 
-	"carproject/framework/components/parse"
-	"carproject/framework/container"
-	"carproject/framework/util"
-	
+	"github.com/xingjigongsi/carproject/framework/components/parse"
+	"github.com/xingjigongsi/carproject/framework/container"
+	"github.com/xingjigongsi/carproject/framework/util"
+
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 )
 

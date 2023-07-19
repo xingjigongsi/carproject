@@ -1,5 +1,5 @@
 Addr: localhost:6379
 Password:
-DB:
+DB: 14
 MaxIdle: 20
 Timeout: 10

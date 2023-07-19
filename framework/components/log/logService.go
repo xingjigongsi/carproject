@@ -1,8 +1,8 @@
 package log
 
 import (
-	"carproject/framework/components/parse"
-	"carproject/framework/container"
+	"github.com/xingjigongsi/carproject/framework/components/parse"
+	"github.com/xingjigongsi/carproject/framework/container"
 	"io"
 )
 

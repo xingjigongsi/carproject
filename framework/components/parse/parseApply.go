@@ -1,26 +1,32 @@
 package parse
 
 import (
-	container2 "carproject/framework/container"
-	"github.com/pkg/errors"
-	"github.com/spf13/cast"
-	yaml "gopkg.in/yaml.v2"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
+	"github.com/spf13/cast"
+	yaml "gopkg.in/yaml.v2"
+
+	"github.com/xingjigongsi/carproject/framework/container"
 )
 
 type ParseApply struct {
-	parseContainer container2.InterfaceContainer
+	parseContainer container.InterfaceContainer
 	confMaps       map[string]interface{}
 	keyDelim       string
 	dirPath        string
+	parseLock      sync.Mutex
 }
 
 func NewParseApply(parmes ...interface{}) (interface{}, error) {
-	container := parmes[0].(container2.InterfaceContainer)
+	container := parmes[0].(container.InterfaceContainer)
 	dirpath := parmes[1].(string)
 	return &ParseApply{
 		parseContainer: container,
@@ -34,10 +40,55 @@ func (parseFile *ParseApply) readConf() (map[string]interface{}, error) {
 	if _, err := os.Stat(parseFile.dirPath); os.IsNotExist(err) {
 		return nil, errors.New("folder" + parseFile.dirPath + " not exist:" + err.Error())
 	}
-	files, err := ioutil.ReadDir(parseFile.dirPath)
+	parseFile.parseLock.Lock()
+	defer parseFile.parseLock.Unlock()
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
+	defer watcher.Close()
+	err = watcher.Add(parseFile.dirPath)
+	if err != nil {
+		return nil, err
+	}
+	errs := make(chan error, 1)
+	go func() {
+		for {
+			select {
+			case ev, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if err != nil {
+					return
+				}
+				path, _ := filepath.Abs(ev.Name)
+				index := strings.LastIndex(path, string(os.PathSeparator))
+				folder := path[:index]
+				fileName := path[index+1:]
+				if ev.Op&fsnotify.Create == fsnotify.Create {
+					err := parseFile.loadConfigFile(folder, fileName)
+					errs <- err
+				}
+				if ev.Op&fsnotify.Write == fsnotify.Write {
+					err := parseFile.loadConfigFile(folder, fileName)
+					errs <- err
+				}
+				if ev.Op&fsnotify.Remove == fsnotify.Remove {
+					delete(parseFile.confMaps, fileName)
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				errs <- err
+			}
+		}
+	}()
+	go func() {
+		fmt.Println(<-errs)
+	}()
+	files, err := ioutil.ReadDir(parseFile.dirPath)
 	for _, file := range files {
 		filename := file.Name()
 		err := parseFile.loadConfigFile(parseFile.dirPath, filename)
@@ -51,7 +102,7 @@ func (parseFile *ParseApply) readConf() (map[string]interface{}, error) {
 
 func (parseFile *ParseApply) loadConfigFile(dir string, filename string) error {
 	s := strings.Split(filename, ".")
-	if len(s) != 2 || (s[1] != "yaml" && s[2] != "yml") {
+	if len(s) != 2 || (s[1] != "yaml" && s[1] != "yml") {
 		return errors.New(filename + "not yaml or yml")
 	}
 	name := s[0]
@@ -64,8 +115,8 @@ func (parseFile *ParseApply) loadConfigFile(dir string, filename string) error {
 	if err != nil {
 		return err
 	}
-	if name == "app" && parseFile.parseContainer.IsBind(container2.APPKEY) {
-		app := parseFile.parseContainer.MustMake(container2.APPKEY).(container2.AppInterface)
+	if name == "app" && parseFile.parseContainer.IsBind(container.APPKEY) {
+		app := parseFile.parseContainer.MustMake(container.APPKEY).(container.AppInterface)
 		app.LoadApplyConfig(cast.ToStringMapString(c["path"]))
 	}
 	parseFile.confMaps[name] = c

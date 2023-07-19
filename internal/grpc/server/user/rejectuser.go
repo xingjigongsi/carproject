@@ -1,8 +1,10 @@
 package user
 
 import (
-	proto2 "carproject/api/protobuf/user/v1/proto"
 	"context"
+
+	proto2 "github.com/xingjigongsi/carproject/api/protobuf/user/v1/proto"
+	
 	"google.golang.org/grpc"
 )
 

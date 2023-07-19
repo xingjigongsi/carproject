@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"carproject/framework/container"
+	"github.com/xingjigongsi/carproject/framework/container"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
