@@ -1,8 +1,12 @@
 package test
 
 import (
+	"context"
 	"fmt"
+	proto2 "github.com/xingjigongsi/carproject/api/protobuf/user/v1/proto"
 	"github.com/xingjigongsi/carproject/framework/components/redis"
+	"google.golang.org/grpc"
+	"os"
 	"testing"
 
 	"github.com/xingjigongsi/carproject/framework/components/log"
@@ -37,4 +41,16 @@ func TestParseYml(t *testing.T) {
 	//fmt.Println("sfddfdfsfssf")
 	//err := logs.Logf(context.Background(), "测试数据", map[string]interface{}{})
 	//fmt.Println(err)
+}
+
+func TestGrpc(t *testing.T) {
+	dial, err := grpc.Dial(":8099", grpc.WithInsecure())
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+	defer dial.Close()
+	serviceClient := proto2.NewUserServiceClient(dial)
+	serviceClient.RegisterUser(context.Background(), &proto2.UserMessage{})
+
 }
