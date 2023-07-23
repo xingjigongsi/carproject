@@ -10,6 +10,7 @@ import (
 	"path"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/erikdubbelboer/gspt"
 	"github.com/sevlyar/go-daemon"
@@ -90,7 +91,7 @@ func startSystemCommand() *cobra.Command {
 				return nil
 			}
 			os.WriteFile(systempid, []byte(pid), os.ModePerm)
-			gspt.SetProcTitle("cron")
+			gspt.SetProcTitle("system")
 			StartgRpc()
 			return nil
 		},
@@ -110,16 +111,27 @@ func stopSystemCommand() *cobra.Command {
 			workdir := app.BaseFolder()
 			folderPid := path.Join(path.Join(workdir, "pid"), "system.pid")
 			pid, err := os.ReadFile(folderPid)
-			if err != nil {
+			if err != nil || len(pid) < 0 {
 				return err
 			}
 			atoi, err := strconv.Atoi(string(pid))
 			if err != nil {
 				return err
 			}
-			err = syscall.Kill(atoi, syscall.SIGTERM|syscall.SIGQUIT)
-			if err != nil {
-				return err
+			for i := 0; i < 10; i++ {
+				process, err := os.FindProcess(atoi)
+				if err != nil {
+					break
+				}
+				err = process.Signal(syscall.Signal(0))
+				if err != nil {
+					break
+				}
+				err = syscall.Kill(atoi, syscall.SIGTERM|syscall.SIGQUIT)
+				if err != nil {
+					return err
+				}
+				time.Sleep(1 * time.Second)
 			}
 			err = os.WriteFile(folderPid, []byte{}, os.ModePerm)
 			if err != nil {

@@ -52,5 +52,4 @@ func TestGrpc(t *testing.T) {
 	defer dial.Close()
 	serviceClient := proto2.NewUserServiceClient(dial)
 	serviceClient.RegisterUser(context.Background(), &proto2.UserMessage{})
-
 }

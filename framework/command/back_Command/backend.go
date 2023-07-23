@@ -10,13 +10,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 )
 
 type Backend struct {
 	backendConfig *backendConfig
-	BackendId     int
 }
 
 type backendConfig struct {
@@ -68,17 +66,13 @@ func (backend *Backend) RebuildBackend() error {
 }
 
 func (backend *Backend) StartBackend() error {
-	if backend.BackendId != 0 {
-		if err := syscall.Kill(backend.BackendId, syscall.SYS_KILL); err != nil {
-			return err
-		}
-	}
 	fmt.Println("正在关闭系统")
 	if err := backend.StopBackend(); err != nil {
 		fmt.Println("关闭失败")
 		return err
 	}
 	fmt.Println("正在重启系统")
+	time.Sleep(1 * time.Second)
 	port := ":" + backend.backendConfig.Port
 	command := exec.Command("./main", "system", "start", "--port=:"+port)
 	command.Stdout = os.NewFile(0, os.DevNull)
@@ -87,7 +81,6 @@ func (backend *Backend) StartBackend() error {
 	if err := command.Start(); err != nil {
 		return err
 	}
-	backend.BackendId = command.Process.Pid
 	return nil
 }
 
@@ -109,7 +102,7 @@ func (backend *Backend) MoniterFolder() error {
 	defer watcher.Close()
 	folder := backend.backendConfig.MonitorFolder
 	filepath.Walk(folder, func(path string, info fs.FileInfo, err error) error {
-		for _, v := range []string{".git", "pid", "log"} {
+		for _, v := range []string{".git", "pid", "log", "cmd"} {
 			if len(path) > 1 && strings.Contains(path, v) {
 				return nil
 			}
@@ -122,7 +115,9 @@ func (backend *Backend) MoniterFolder() error {
 		}
 		ext := filepath.Ext(path)
 		if ext == ".go" || ext == ".yaml" || ext == ".proto" || ext == ".yam" {
-			watcher.Add(path)
+			if err := watcher.Add(path); err != nil {
+				return err
+			}
 		}
 		return nil
 	})

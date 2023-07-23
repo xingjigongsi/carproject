@@ -15,10 +15,10 @@ func CommandRestart() *cobra.Command {
 			backend := NewBackend(cmd.Get())
 			go backend.MoniterFolder()
 			err := backend.StartBackend()
-			select {}
 			if err != nil {
 				log.Printf("%v", err)
 			}
+			select {}
 			return nil
 		},
 	}
