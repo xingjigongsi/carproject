@@ -10,11 +10,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Backend struct {
 	backendConfig *backendConfig
+	lock          sync.Mutex
 }
 
 type backendConfig struct {
@@ -66,35 +68,22 @@ func (backend *Backend) RebuildBackend() error {
 }
 
 func (backend *Backend) StartBackend() error {
-	fmt.Println("正在关闭系统")
-	if err := backend.StopBackend(); err != nil {
-		fmt.Println("关闭失败")
-		return err
-	}
 	fmt.Println("正在重启系统")
-	time.Sleep(1 * time.Second)
-	port := ":" + backend.backendConfig.Port
-	command := exec.Command("./main", "system", "start", "--port=:"+port)
+	//port := ":" + backend.backendConfig.Port
+	command := exec.Command("./main", "system", "restart")
 	command.Stdout = os.NewFile(0, os.DevNull)
 	command.Stderr = os.Stderr
+	if err := command.Start(); err != nil {
+		fmt.Println(err)
+		return err
+	}
 	fmt.Println("系统重启成功")
-	if err := command.Start(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (backend *Backend) StopBackend() error {
-	command := exec.Command("./main", "system", "stop")
-	command.Stdout = os.NewFile(0, os.DevNull)
-	command.Stderr = os.Stderr
-	if err := command.Start(); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (backend *Backend) MoniterFolder() error {
+	backend.lock.Lock()
+	defer backend.lock.Unlock()
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -102,7 +91,7 @@ func (backend *Backend) MoniterFolder() error {
 	defer watcher.Close()
 	folder := backend.backendConfig.MonitorFolder
 	filepath.Walk(folder, func(path string, info fs.FileInfo, err error) error {
-		for _, v := range []string{".git", "pid", "log", "cmd"} {
+		for _, v := range []string{".git", "pid", "log"} {
 			if len(path) > 1 && strings.Contains(path, v) {
 				return nil
 			}
@@ -115,9 +104,7 @@ func (backend *Backend) MoniterFolder() error {
 		}
 		ext := filepath.Ext(path)
 		if ext == ".go" || ext == ".yaml" || ext == ".proto" || ext == ".yam" {
-			if err := watcher.Add(path); err != nil {
-				return err
-			}
+			watcher.Add(path)
 		}
 		return nil
 	})

@@ -11,7 +11,6 @@ type UserRegister struct {
 
 func (c *UserRegister) RegisterUser(ctx context.Context, in *proto2.UserMessage) (*proto2.RegiterRegisterUser, error) {
 	fmt.Println("omyererfsfs")
-	fmt.Println("ffff")
-	fmt.Println("mmsfdfsfsdsfd")
+	fmt.Println("fdsfdfsdfdsfsfd")
 	return &proto2.RegiterRegisterUser{}, nil
 }

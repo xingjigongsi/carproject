@@ -23,6 +23,8 @@ import (
 
 var Port string
 
+var pid int
+
 func SystemCommand() *cobra.Command {
 	var system = &cobra.Command{
 		Use:   "system",
@@ -33,6 +35,7 @@ func SystemCommand() *cobra.Command {
 	}
 	system.AddCommand(startSystemCommand())
 	system.AddCommand(stopSystemCommand())
+	system.AddCommand(restartSystemCommand())
 	return system
 }
 
@@ -60,6 +63,13 @@ func startSystemCommand() *cobra.Command {
 			}
 			systempid := path.Join(folderPid, "system.pid")
 			systemlog := path.Join(foldrlog, "system.log")
+			proessId, err := os.ReadFile(folderPid)
+			if err == nil && len(proessId) > 0 {
+				if t, err := strconv.Atoi(string(proessId)); err == nil && util.IsExistProcess(t) {
+					e := stopSystemCommand().RunE
+					fmt.Println(e)
+				}
+			}
 			pid := strconv.Itoa(os.Getpid())
 			if Demon {
 				context := &daemon.Context{
@@ -144,6 +154,41 @@ func stopSystemCommand() *cobra.Command {
 	return stoptSystem
 }
 
+func restartSystemCommand() *cobra.Command {
+	var restartSystem = &cobra.Command{
+		Use:   "restart",
+		Short: "重新启动",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			containe := cmd.Get()
+			app := containe.MustMake(container.APPKEY).(*container.AppApply)
+			workdir := app.BaseFolder()
+			folderPid := path.Join(path.Join(workdir, "pid"), "system.pid")
+
+			for i := 0; i < 10; i++ {
+				pid, err := os.ReadFile(folderPid)
+				if err != nil {
+					log.Printf("%s", err)
+				}
+				if len(pid) > 0 && err == nil {
+					atoi, err := strconv.Atoi(string(pid))
+					if err != nil {
+						log.Printf("%s", err)
+					}
+					if !util.IsExistProcess(atoi) {
+						break
+					}
+					fmt.Println(atoi)
+					syscall.Kill(atoi, syscall.SIGTERM|syscall.SIGQUIT)
+					os.WriteFile(folderPid, []byte{}, os.ModePerm)
+					time.Sleep(1 * time.Second)
+				}
+			}
+			return startSystemCommand().RunE(cmd, args)
+		},
+	}
+	return restartSystem
+}
+
 func StartgRpc() {
 	listen, err := net.Listen("tcp", ":8099")
 	if err != nil {
@@ -151,6 +196,5 @@ func StartgRpc() {
 	}
 	g := grpc.NewServer()
 	proto.RegisterUserServiceServer(g, &user.UserRegister{})
-
 	g.Serve(listen)
 }
