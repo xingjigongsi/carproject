@@ -2,10 +2,7 @@ package app_command
 
 import (
 	"fmt"
-	"github.com/xingjigongsi/carproject/api/protobuf/user/v1/proto"
-	"github.com/xingjigongsi/carproject/internal/grpc/server/user"
 	"log"
-	"net"
 	"os"
 	"path"
 	"strconv"
@@ -14,7 +11,6 @@ import (
 
 	"github.com/erikdubbelboer/gspt"
 	"github.com/sevlyar/go-daemon"
-	"google.golang.org/grpc"
 
 	"github.com/xingjigongsi/carproject/framework/cobra"
 	"github.com/xingjigongsi/carproject/framework/container"
@@ -97,13 +93,11 @@ func startSystemCommand() *cobra.Command {
 					log.Printf("释放成功!!!")
 				}(context)
 				gspt.SetProcTitle("system")
-				StartgRpc()
-				return nil
+				return GrpcStart().RunE(cmd, args)
 			}
 			os.WriteFile(systempid, []byte(pid), os.ModePerm)
 			gspt.SetProcTitle("system")
-			StartgRpc()
-			return nil
+			return GrpcStart().RunE(cmd, args)
 		},
 	}
 	startSystem.Flags().BoolVarP(&Demon, "demon", "d", false, "系统后台执行")
@@ -177,7 +171,6 @@ func restartSystemCommand() *cobra.Command {
 					if !util.IsExistProcess(atoi) {
 						break
 					}
-					fmt.Println(atoi)
 					syscall.Kill(atoi, syscall.SIGTERM|syscall.SIGQUIT)
 					os.WriteFile(folderPid, []byte{}, os.ModePerm)
 					time.Sleep(1 * time.Second)
@@ -187,14 +180,4 @@ func restartSystemCommand() *cobra.Command {
 		},
 	}
 	return restartSystem
-}
-
-func StartgRpc() {
-	listen, err := net.Listen("tcp", ":8099")
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
-	g := grpc.NewServer()
-	proto.RegisterUserServiceServer(g, &user.UserRegister{})
-	g.Serve(listen)
 }

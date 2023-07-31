@@ -68,7 +68,6 @@ func (backend *Backend) RebuildBackend() error {
 }
 
 func (backend *Backend) StartBackend() error {
-	fmt.Println("正在重启系统")
 	//port := ":" + backend.backendConfig.Port
 	command := exec.Command("./main", "system", "restart")
 	command.Stdout = os.NewFile(0, os.DevNull)

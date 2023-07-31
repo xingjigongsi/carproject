@@ -21,7 +21,6 @@ func BuildCommand() *cobra.Command {
 				fmt.Println(output)
 				return err
 			}
-			fmt.Println("编译成功")
 			return nil
 		},
 	}

@@ -44,7 +44,7 @@ func TestParseYml(t *testing.T) {
 }
 
 func TestGrpc(t *testing.T) {
-	dial, err := grpc.Dial(":8099", grpc.WithInsecure())
+	dial, err := grpc.Dial(":8081", grpc.WithInsecure())
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(-1)

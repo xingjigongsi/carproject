@@ -13,4 +13,5 @@ func AppCommand(command *cobra.Command) {
 	command.AddCommand(app_command.CommandInformation())
 	command.AddCommand(app_command.SystemCommand())
 	command.AddCommand(back_Command.CommandRestart())
+	command.AddCommand(app_command.GrpcCommand())
 }
