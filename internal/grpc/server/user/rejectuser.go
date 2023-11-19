@@ -14,8 +14,8 @@ type UserRegister struct {
 
 func (c *UserRegister) RegisterUser(ctx context.Context, in *proto2.UserMessage) (*proto2.RegiterRegisterUser, error) {
 	apply := c.Container.MustMake(parse.PASE_NAME).(*parse.ParseApply)
-	getString, _ := apply.GetString("app.Port")
+	getString, _ := apply.GetString("database.mongodb.mongodbUrl")
 	fmt.Println(getString)
-	fmt.Println("liuxingyu")
+	fmt.Println("fdsdsfdsfdsfdsfdsf")
 	return &proto2.RegiterRegisterUser{}, nil
 }
